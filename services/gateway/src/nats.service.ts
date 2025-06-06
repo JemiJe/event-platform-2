@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { connect, NatsConnection, StringCodec, JetStreamClient, StreamConfig, StorageType, RetentionPolicy } from 'nats';
+import { Event } from './types/events';
 
 @Injectable()
 export class NatsService implements OnModuleInit, OnModuleDestroy {
@@ -17,7 +18,7 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
 
       // Ensure streams exist
       const js = this.jetstream;
-      const streams = ['events.facebook', 'events.tiktok'];
+      const streams = ['events_facebook', 'events_tiktok'];
 
       for (const stream of streams) {
         try {
@@ -28,7 +29,7 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
             storage: StorageType.Memory,
             retention: RetentionPolicy.Workqueue,
             max_msgs_per_subject: 1000,
-            max_age: 24 * 60 * 60 * 1000, // 24 hours
+            max_age: 24 * 60 * 60 * 1000 * 1000, // 24 hours in nanoseconds
           });
           this.logger.log(`Stream ${stream} created or already exists`);
         } catch (error) {
@@ -60,7 +61,7 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
       return;
     }
   
-    const streamName = `events`; // Simplify stream structure
+    const streamName = 'events'; // Single stream for all events
     const subject = `${streamName}.${event.source}.${event.eventType}`;
   
     const payload = this.sc.encode(JSON.stringify(event));
@@ -74,5 +75,4 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
       throw error;
     }
   }
-  
 } 
