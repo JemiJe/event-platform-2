@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { connect, NatsConnection, StringCodec, JetStreamClient, StreamConfig, StorageType, RetentionPolicy } from 'nats';
+import { connect, NatsConnection, StringCodec, JetStreamClient, StorageType, RetentionPolicy } from 'nats';
 import { Event } from './types/events';
 
 @Injectable()
@@ -14,36 +14,35 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
       this.natsConnection = await connect({
         servers: process.env.NATS_URL || 'nats://nats:4222',
       });
-      this.jetstream = this.natsConnection.jetstream();
 
-      // Ensure streams exist
-      const js = this.jetstream;
-      const streams = ['events_facebook', 'events_tiktok'];
+      const jsm = await this.natsConnection.jetstreamManager();
 
-      for (const stream of streams) {
-        try {
-          const jsm = await this.natsConnection.jetstreamManager();
-          await jsm.streams.add({
-            name: stream,
-            subjects: [`${stream}.*`],
-            storage: StorageType.Memory,
-            retention: RetentionPolicy.Workqueue,
-            max_msgs_per_subject: 1000,
-            max_age: 24 * 60 * 60 * 1000 * 1000, // 24 hours in nanoseconds
-          });
-          this.logger.log(`Stream ${stream} created or already exists`);
-        } catch (error) {
-          if (error.code === '10058') { // Stream already exists
-            this.logger.log(`Stream ${stream} already exists`);
-          } else {
-            throw error;
-          }
+      // Define a single unified stream
+      const streamName = 'events';
+
+      try {
+        await jsm.streams.add({
+          name: streamName,
+          subjects: ['events.>'], // Match all event topics
+          storage: StorageType.Memory,
+          retention: RetentionPolicy.Limits,
+          max_msgs_per_subject: 1000,
+          max_age: 24 * 60 * 60 * 1_000_000_000, // 24h in nanoseconds
+        });
+        this.logger.log(`✅ Stream '${streamName}' created`);
+      } catch (error) {
+        if (error.code === '10058') {
+          this.logger.log(`ℹ️ Stream '${streamName}' already exists`);
+        } else {
+          this.logger.error(`❌ Failed to create stream '${streamName}': ${error.message}`);
+          throw error;
         }
       }
 
-      this.logger.log('Connected to NATS JetStream');
+      this.jetstream = this.natsConnection.jetstream();
+      this.logger.log('✅ Connected to NATS JetStream');
     } catch (error) {
-      this.logger.error(`Failed to connect to NATS: ${error.message}`);
+      this.logger.error(`❌ Failed to connect to NATS: ${error.message}`);
       throw error;
     }
   }
@@ -51,28 +50,25 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy() {
     if (this.natsConnection) {
       await this.natsConnection.drain();
-      this.logger.log('Disconnected from NATS');
+      this.logger.log('🛑 Disconnected from NATS');
     }
   }
 
-  async publishEvent(event: any) {
+  async publishEvent(event: Event) {
     if (!this.jetstream) {
-      this.logger.warn('NATS not connected, skipping event publish');
+      this.logger.warn('⚠️ NATS not connected, skipping event publish');
       return;
     }
-  
-    const streamName = 'events'; // Single stream for all events
-    const subject = `${streamName}.${event.source}.${event.eventType}`;
-  
+
+    const subject = `events.${event.source}.${event.eventType}`;
     const payload = this.sc.encode(JSON.stringify(event));
-  
+
     try {
       await this.jetstream.publish(subject, payload);
-      // Optional: you can comment this out for less console noise
-      this.logger.log(`📤 Published event to ${subject}`);
+      this.logger.log(`📤 Published event to '${subject}'`);
     } catch (error) {
-      this.logger.error(`Failed to publish event: ${error.message}`);
+      this.logger.error(`❌ Failed to publish event: ${error.message}`);
       throw error;
     }
   }
-} 
+}
