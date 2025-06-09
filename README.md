@@ -5,6 +5,7 @@ A microservices-based event processing platform that handles event spawning, dat
 ## Architecture
 
 The platform consists of the following microservices:
+- Publisher: Generates test events (can be replaced with publisher-testing for development)
 - Gateway: Receives webhook events and publishes them to NATS
 - Facebook Collector: Processes Facebook events
 - TikTok Collector: Processes TikTok events
@@ -43,6 +44,29 @@ Each service is located in the `services` directory:
 - `services/fb-collector`
 - `services/ttk-collector`
 - `services/reporter`
+- `services/publisher-testing` (alternative to the default publisher)
+
+### Publisher Testing Service
+
+The `publisher-testing` service is an alternative to the default publisher, designed for development and testing purposes. It provides more control over event generation rates and is easier to configure (in original publisher amount of events 10000 - 50000).
+
+To use the publisher-testing service:
+1. Comment out the default publisher service in `docker-compose.yml`
+2. Uncomment the publisher-testing service configuration
+3. Configure the event generation rates using environment variables:
+   - `MIN_EVENTS_PER_SECOND`: Minimum number of events to generate per second (default: 10)
+   - `MAX_EVENTS_PER_SECOND`: Maximum number of events to generate per second (default: 100)
+
+Example configuration in docker-compose.yml:
+```yaml
+publisher:
+  build:
+    context: ./services/publisher-testing
+  environment:
+    - NATS_URL=nats://nats:4222
+    - MIN_EVENTS_PER_SECOND=10
+    - MAX_EVENTS_PER_SECOND=100
+```
 
 ## Testing
 

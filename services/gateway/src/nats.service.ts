@@ -65,9 +65,9 @@ export class NatsService implements OnModuleInit, OnModuleDestroy {
 
     try {
       await this.jetstream.publish(subject, payload);
-      this.logger.log(`📤 Published event to '${subject}'`);
+      // this.logger.log(`📤 Published event to '${subject}'`);
     } catch (error) {
-      this.logger.error(`❌ Failed to publish event: ${error.message}`);
+      // this.logger.error(`❌ Failed to publish event: ${error.message}`);
       throw error;
     }
   }

@@ -1,0 +1,5 @@
+services:
+  publisher:
+    image: andriiuni/events:latest
+    environment:
+      EVENT_ENDPOINT: "http://host.docker.internal:3000/events"
