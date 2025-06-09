@@ -1,5 +1,6 @@
 services:
 
+# testing publisher service with customizable event generation rates
   publisher:
     build:
       context: ./services/publisher-testing
@@ -9,7 +10,7 @@ services:
       - MAX_EVENTS_PER_SECOND=100
     restart: unless-stopped
 
-# Old publisher service (commented out)
+# Default original publisher service 10000 - 50000 events per second
 # publisher:
 #   image: andriiuni/events
 #   platform: linux/arm64/v8
