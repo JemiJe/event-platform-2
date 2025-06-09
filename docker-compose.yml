@@ -1,10 +1,23 @@
 services:
+
   publisher:
-    image: andriiuni/events
-    platform: linux/arm64/v8
+    build:
+      context: ./services/publisher-testing
     environment:
       - EVENT_ENDPOINT=http://gateway:3000/webhook
+      - MIN_EVENTS_PER_SECOND=10
+      - MAX_EVENTS_PER_SECOND=100
     restart: unless-stopped
+
+# Old publisher service (commented out)
+# publisher:
+#   image: andriiuni/events
+#   platform: linux/arm64/v8
+#   environment:
+#     - EVENT_ENDPOINT=http://gateway:3000/webhook
+#   restart: unless-stopped
+
+# New publisher service from publisher-testing
 
   nats:
     image: nats:latest
@@ -16,7 +29,7 @@ services:
       - ./nats-server.conf:/etc/nats/nats-server.conf
     healthcheck:
       test: ["CMD", "nats-server", "--help"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
     restart: unless-stopped
@@ -43,24 +56,18 @@ services:
       retries: 3
     restart: unless-stopped
 
-#   fb-collector:
-#     build:
-#       context: ./services/fb-collector
-#       dockerfile: Dockerfile
-#     environment:
-#       - NODE_ENV=development
-#       - NATS_URL=nats://nats:4222
-#       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/events
-#     depends_on:
-#       nats:
-#         condition: service_healthy
-#       postgres:
-#         condition: service_healthy
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
+  fb-collector:
+    build:
+      context: ./services/fb-collector
+      dockerfile: Dockerfile
+    environment:
+      - NATS_URL=nats://nats:4222
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/events?schema=public
+    depends_on:
+      nats:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
 
 #   ttk-collector:
 #     build:
@@ -99,21 +106,21 @@ services:
 #       timeout: 10s
 #       retries: 3
 
-#   postgres:
-#     image: postgres:latest
-#     environment:
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=postgres
-#       - POSTGRES_DB=events
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     ports:
-#       - "5432:5432"
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U postgres"]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: events
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 #   prometheus:
 #     image: prom/prometheus:latest
@@ -137,7 +144,7 @@ services:
 #     depends_on:
 #       - prometheus
 
-# volumes:
-#   postgres_data:
+volumes:
+  postgres_data:
 #   prometheus_data:
 #   grafana_data: 
