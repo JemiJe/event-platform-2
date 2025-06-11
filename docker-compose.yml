@@ -18,8 +18,6 @@ services:
 #     - EVENT_ENDPOINT=http://gateway:3000/webhook
 #   restart: unless-stopped
 
-# New publisher service from publisher-testing
-
   nats:
     image: nats:latest
     command: ["--js", "--config", "/etc/nats/nats-server.conf"]
@@ -114,7 +112,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: events
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
