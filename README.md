@@ -74,14 +74,3 @@ Run tests for all services:
 ```bash
 npm test
 ```
-
-## Environment Variables
-
-Required environment variables:
-- `EVENT_ENDPOINT`: Webhook endpoint for the publisher
-- `NATS_URL`: NATS connection URL
-- `DATABASE_URL`: PostgreSQL connection URL
-
-## License
-
-MIT 

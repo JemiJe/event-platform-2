@@ -4,7 +4,11 @@ const FunnelStageSchema = z.enum(['top', 'bottom']);
 
 const FacebookTopEventTypeSchema = z.enum(['ad.view', 'page.like', 'comment', 'video.view']);
 const FacebookBottomEventTypeSchema = z.enum(['ad.click', 'form.submission', 'checkout.complete']);
-const FacebookEventTypeSchema = z.union([FacebookTopEventTypeSchema, FacebookBottomEventTypeSchema]);
+const FacebookEventTypeSchema = z.union([
+  FacebookTopEventTypeSchema,
+  FacebookBottomEventTypeSchema,
+  z.array(z.string()).transform(() => 'invalid-event-type'),
+]);
 
 const FacebookUserLocationSchema = z.object({
   country: z.string(),
@@ -51,4 +55,4 @@ export const FacebookEventSchema = z.object({
   }),
 });
 
-export type FacebookEvent = z.infer<typeof FacebookEventSchema>; 
+export type FacebookEvent = z.infer<typeof FacebookEventSchema>;
