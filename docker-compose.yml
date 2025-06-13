@@ -9,14 +9,18 @@ services:
       - MIN_EVENTS_PER_SECOND=10
       - MAX_EVENTS_PER_SECOND=100
     restart: unless-stopped
+    profiles:
+      - development
 
-# Default original publisher service 10000 - 50000 events per second
-# publisher:
-#   image: andriiuni/events
-#   platform: linux/arm64/v8
-#   environment:
-#     - EVENT_ENDPOINT=http://gateway:3000/webhook
-#   restart: unless-stopped
+  publisher-prod:
+    image: andriiuni/events
+    platform: linux/arm64/v8
+    environment:
+      - EVENT_ENDPOINT=http://gateway:3000/webhook
+    restart: unless-stopped
+    profiles:
+      - staging
+      - production
 
   nats:
     image: nats:latest
@@ -32,9 +36,17 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    profiles:
+      - development
+      - staging
+      - production
     depends_on:
       publisher:
         condition: service_started
+        required: false
+      publisher-prod:
+        condition: service_started
+        required: false
 
   gateway:
     build:
@@ -114,12 +126,13 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_${NODE_ENV:-development}_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
 #   prometheus:
 #     image: prom/prometheus:latest
@@ -144,6 +157,11 @@ services:
 #       - prometheus
 
 volumes:
-  postgres_data:
+  postgres_development_data:
+    name: event-platform-postgres-development
+  postgres_staging_data:
+    name: event-platform-postgres-staging
+  postgres_production_data:
+    name: event-platform-postgres-production
 #   prometheus_data:
 #   grafana_data: 

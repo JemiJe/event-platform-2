@@ -10,11 +10,13 @@ import {
   FunnelStage,
   Gender,
 } from '@prisma/client';
+import { z } from 'zod';
+import { FacebookEvent, FacebookEngagementTop, FacebookEngagementBottom } from '../types/events';
 
 @Injectable()
 export class EventProcessorService {
   private readonly logger = new Logger(EventProcessorService.name);
-  private eventBuffer: any[] = [];
+  private eventBuffer: FacebookEvent[] = [];
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -32,17 +34,31 @@ export class EventProcessorService {
   }
 
   private isTopFunnelEngagement(
-    engagement: any,
-  ): engagement is { actionTime: string; referrer: string; videoId: string | null } {
+    engagement: FacebookEngagementTop | FacebookEngagementBottom,
+  ): engagement is FacebookEngagementTop {
     return 'referrer' in engagement;
   }
 
-  private async processBatch(events: any[]): Promise<void> {
+  private async processBatch(events: FacebookEvent[]): Promise<void> {
     const data = events.map((event) => {
       const engagement = event.data.engagement;
+
+      // Parse and validate timestamp with fallback
+      let timestamp: Date;
+      try {
+        timestamp = new Date(event.timestamp);
+        if (isNaN(timestamp.getTime())) {
+          this.logger.warn(`Invalid timestamp ${event.timestamp}, using current time`);
+          timestamp = new Date();
+        }
+      } catch (error) {
+        this.logger.warn(`Error parsing timestamp ${event.timestamp}, using current time`);
+        timestamp = new Date();
+      }
+
       return {
         eventId: event.eventId,
-        timestamp: new Date(event.timestamp),
+        timestamp: timestamp,
         source: event.source,
         funnelStage: event.funnelStage as FunnelStage,
         eventType: event.eventType,
@@ -65,19 +81,23 @@ export class EventProcessorService {
         videoId: this.isTopFunnelEngagement(engagement) ? engagement.videoId : null,
 
         // Bottom funnel specific fields
-        adId: !this.isTopFunnelEngagement(engagement) ? (engagement as any).adId : null,
-        campaignId: !this.isTopFunnelEngagement(engagement) ? (engagement as any).campaignId : null,
+        adId: !this.isTopFunnelEngagement(engagement)
+          ? (engagement as FacebookEngagementBottom).adId
+          : null,
+        campaignId: !this.isTopFunnelEngagement(engagement)
+          ? (engagement as FacebookEngagementBottom).campaignId
+          : null,
         clickPosition: !this.isTopFunnelEngagement(engagement)
-          ? ((engagement as any).clickPosition as ClickPosition)
+          ? ((engagement as FacebookEngagementBottom).clickPosition as ClickPosition)
           : null,
         device: !this.isTopFunnelEngagement(engagement)
-          ? ((engagement as any).device as Device)
+          ? ((engagement as FacebookEngagementBottom).device as Device)
           : null,
         browser: !this.isTopFunnelEngagement(engagement)
-          ? ((engagement as any).browser as Browser)
+          ? ((engagement as FacebookEngagementBottom).browser as Browser)
           : null,
         purchaseAmount: !this.isTopFunnelEngagement(engagement)
-          ? (engagement as any).purchaseAmount
+          ? (engagement as FacebookEngagementBottom).purchaseAmount
           : null,
       } satisfies Prisma.FacebookEventCreateInput;
     });
@@ -95,10 +115,8 @@ export class EventProcessorService {
 
   async processEvent(event: unknown): Promise<void> {
     try {
-      console.log('got event', this.eventBuffer.length);
-
       // Validate event using Zod schema
-      const validatedEvent = FacebookEventSchema.parse(event);
+      const validatedEvent = FacebookEventSchema.parse(event) as FacebookEvent;
 
       // Add to buffer
       this.eventBuffer.push(validatedEvent);
@@ -107,7 +125,14 @@ export class EventProcessorService {
       await this.processBatch(this.eventBuffer);
       this.eventBuffer = [];
     } catch (error) {
-      this.logger.error(`Failed to process event: ${error.message}`);
+      if (error instanceof z.ZodError) {
+        this.logger.error('Invalid event format:', {
+          errors: error.errors,
+          receivedEvent: event,
+        });
+      } else {
+        this.logger.error(`Failed to process event: ${error.message}`);
+      }
       throw error;
     }
   }
