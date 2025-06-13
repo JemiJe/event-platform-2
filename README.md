@@ -42,25 +42,60 @@ docker-compose --profile production up
 The platform supports multiple environment modes for different deployment scenarios:
 
 ### Development Mode
-- Database is cleared each time you run `docker-compose up`
-- Perfect for local development and testing
-- Uses ephemeral storage
 - Uses testing publisher service with configurable event rates (10-100 events/sec)
+- Perfect for local development and testing
 - Run with: `docker-compose --profile development up`
 
 ### Staging Mode
-- Database persists between restarts
-- Uses a separate volume for staging data
-- Perfect for pre-production testing
 - Uses production publisher service (10,000-50,000 events/sec)
+- Perfect for pre-production testing
 - Run with: `docker-compose --profile staging up`
 
 ### Production Mode
-- Database persists between restarts
-- Uses a dedicated production volume
-- Optimized for reliability and performance
 - Uses production publisher service (10,000-50,000 events/sec)
+- Optimized for reliability and performance
 - Run with: `docker-compose --profile production up`
+
+### Database
+- All environments use the same persistent volume `event-platform-postgres-data`
+- Data persists between restarts and container removals
+- To start fresh, you need to:
+  1. Stop all containers: `docker-compose down`
+  2. Remove the volume: `docker volume rm event-platform-postgres-data`
+  3. Start again: `docker-compose --profile <environment> up -d`
+
+### Database Migrations
+The service automatically handles database migrations:
+- On startup, it checks for and applies any pending migrations
+- Migrations are applied safely without data loss
+- Existing data is preserved during migrations
+
+To create new migrations:
+```bash
+# 1. Make changes to schema.prisma
+# 2. Generate migration
+npx prisma migrate dev --name your_migration_name
+# 3. Commit the generated migration files
+git add prisma/migrations
+git commit -m "Add database migration"
+# 4. Deploy - migrations will be applied automatically
+docker-compose --profile production up -d
+```
+
+### Database Connection
+The service automatically:
+- Waits for PostgreSQL to be ready
+- Applies any pending migrations safely
+- Preserves existing data during migrations
+- Handles connection retries gracefully
+
+For database management tools (like DBeaver):
+- Host: localhost
+- Port: 5433
+- Database: events
+- Username: postgres
+- Password: postgres
+- SSL: Disable
 
 ## Services
 
