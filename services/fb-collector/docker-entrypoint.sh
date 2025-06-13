@@ -1,20 +1,16 @@
 #!/bin/sh
 set -e
 
-# Wait for postgres to be ready
 echo "Waiting for postgres..."
-until npx prisma db push --skip-generate; do
+until npx prisma migrate status > /dev/null 2>&1; do
   echo "Postgres is unavailable - sleeping"
-  sleep 1
+  sleep 2
 done
 echo "PostgreSQL started"
 
-# Create and run migrations
-echo "Setting up database..."
-npx prisma migrate reset --force
-npx prisma migrate dev --name init --create-only
+sleep 2
+
+echo "Applying safe production migrations..."
 npx prisma migrate deploy
 
-# Start the application
-echo "Starting application..."
-exec "$@" 
+exec "$@"
