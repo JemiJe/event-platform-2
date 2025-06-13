@@ -27,8 +27,40 @@ npm install
 
 2. Start the services:
 ```bash
-docker-compose up
+# Development mode (default) - database cleared on each start, testing publisher
+docker-compose --profile development up
+
+# Staging mode - persistent database, production publisher
+docker-compose --profile staging up
+
+# Production mode - persistent database, production publisher
+docker-compose --profile production up
 ```
+
+## Environment Modes
+
+The platform supports multiple environment modes for different deployment scenarios:
+
+### Development Mode
+- Database is cleared each time you run `docker-compose up`
+- Perfect for local development and testing
+- Uses ephemeral storage
+- Uses testing publisher service with configurable event rates (10-100 events/sec)
+- Run with: `docker-compose --profile development up`
+
+### Staging Mode
+- Database persists between restarts
+- Uses a separate volume for staging data
+- Perfect for pre-production testing
+- Uses production publisher service (10,000-50,000 events/sec)
+- Run with: `docker-compose --profile staging up`
+
+### Production Mode
+- Database persists between restarts
+- Uses a dedicated production volume
+- Optimized for reliability and performance
+- Uses production publisher service (10,000-50,000 events/sec)
+- Run with: `docker-compose --profile production up`
 
 ## Services
 
