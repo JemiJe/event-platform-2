@@ -161,6 +161,6 @@ services:
 volumes:
   postgres_data:
     name: event-platform-postgres-data
-    external: true
+    # external: true
 #   prometheus_data:
 #   grafana_data: 

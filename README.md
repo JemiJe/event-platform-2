@@ -141,3 +141,12 @@ Run tests for all services:
 ```bash
 npm test
 ```
+
+## dev notes
+how to create prisma migration for collector
+- run postgres container
+- run this command in service/..-collector folder
+```shell
+❯ DATABASE_URL="postgresql://postgres:postgres@localhost:5433/events?schema=public" \
+npx prisma migrate dev --name init
+```
