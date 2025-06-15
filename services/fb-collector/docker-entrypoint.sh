@@ -1,14 +1,15 @@
 #!/bin/sh
 set -e
 
-echo "Waiting for postgres..."
-until npx prisma migrate status > /dev/null 2>&1; do
+echo "Waiting for postgres to be ready..."
+until pg_isready -h postgres -p 5432 -U postgres > /dev/null 2>&1; do
   echo "Postgres is unavailable - sleeping"
   sleep 2
 done
-echo "PostgreSQL started"
+echo "PostgreSQL is ready"
 
-sleep 2
+echo "Generating Prisma client..."
+npx prisma generate
 
 echo "Applying safe production migrations..."
 npx prisma migrate deploy
