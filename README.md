@@ -124,6 +124,6 @@ npx prisma generate
 - run postgres container
 - run this command in service/..-collector folder
 ```shell
-❯ DATABASE_URL="postgresql://postgres:postgres@localhost:5433/events?schema=public" \
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/events?schema=public" \
 npx prisma migrate dev --name init
 ```

@@ -26,7 +26,7 @@ const TiktokEngagementTopSchema = z.object({
 
 const TiktokEngagementBottomSchema = z.object({
   actionTime: z.string(),
-  profileId: z.string(),
+  profileId: z.string().nullable(),
   purchasedItem: z.string().nullable(),
   purchaseAmount: z.string().nullable(),
 });
@@ -44,7 +44,20 @@ export const TiktokEventSchema = z.object({
   eventType: TiktokEventTypeSchema,
   data: z.object({
     user: TiktokUserSchema,
-    engagement: TiktokEngagementSchema,
+    engagement: z.union([
+      z.object({
+        ...TiktokEngagementTopSchema.shape,
+      }).refine(() => true, {
+        message: "Top funnel engagement must have top funnel fields",
+        path: ["funnelStage"],
+      }),
+      z.object({
+        ...TiktokEngagementBottomSchema.shape,
+      }).refine(() => true, {
+        message: "Bottom funnel engagement must have bottom funnel fields",
+        path: ["funnelStage"],
+      }),
+    ]),
   }),
 });
 
