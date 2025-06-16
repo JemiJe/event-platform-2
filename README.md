@@ -143,7 +143,12 @@ npm test
 ```
 
 ## dev notes
-how to create prisma migration for collector
+1. after creating prisma/schema.prisma, run this command
+```
+cd services/...-collector
+npx prisma generate
+```
+2. how to create prisma migration for collector
 - run postgres container
 - run this command in service/..-collector folder
 ```shell
