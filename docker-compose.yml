@@ -93,13 +93,8 @@ services:
         condition: service_healthy
       postgres-ttk:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
- postgres-fb:
+  postgres-fb:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres

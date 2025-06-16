@@ -2,7 +2,7 @@
 set -e
 
 echo "Waiting for postgres to be ready..."
-until pg_isready -h postgres -p 5432 -U postgres > /dev/null 2>&1; do
+until pg_isready -h postgres-ttk -p 5432 -U postgres > /dev/null 2>&1; do
   echo "Postgres is unavailable - sleeping"
   sleep 2
 done
