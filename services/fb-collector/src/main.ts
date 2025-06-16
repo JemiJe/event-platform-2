@@ -4,27 +4,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { connect, StringCodec } from 'nats';
-// import { PrismaService } from './prisma/prisma.service';
 import { EventProcessorService } from './event-processor/event-processor.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // const prismaService = app.get(PrismaService);
   const eventProcessorService = app.get(EventProcessorService);
   const logger = new Logger('Bootstrap');
-
-  // Run Prisma migrations
-  // try {
-  //   logger.log('Running Prisma migrations...');
-  //   await prismaService.$executeRaw`SELECT 1`; // Test connection
-  //   await prismaService.$executeRaw`CREATE SCHEMA IF NOT EXISTS public`;
-  //   await prismaService.$executeRaw`GRANT ALL ON SCHEMA public TO postgres`;
-  //   await prismaService.$executeRaw`GRANT ALL ON SCHEMA public TO public`;
-  //   logger.log('Prisma migrations completed successfully');
-  // } catch (error) {
-  //   logger.error('Failed to run Prisma migrations:', error);
-  //   throw error;
-  // }
 
   // Connect to NATS
   try {
