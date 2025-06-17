@@ -1,0 +1,74 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/fb-client"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_FB")
+}
+
+model FacebookEvent {
+  id             String         @id @default(uuid())
+  eventId        String         @unique
+  timestamp      DateTime
+  source         String         @default("facebook")
+  funnelStage    FunnelStage
+  eventType      String
+  userId         String
+  userName       String
+  userAge        Int
+  userGender     Gender
+  userCountry    String
+  userCity       String
+  actionTime     DateTime?
+  referrer       Referrer?
+  videoId        String?
+  adId           String?
+  campaignId     String?
+  clickPosition  ClickPosition?
+  device         Device?
+  browser        Browser?
+  purchaseAmount String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([eventType])
+  @@index([timestamp])
+  @@index([funnelStage])
+}
+
+enum FunnelStage {
+  top
+  bottom
+}
+
+enum Gender {
+  male
+  female
+  non_binary
+}
+
+enum Referrer {
+  newsfeed
+  marketplace
+  groups
+}
+
+enum ClickPosition {
+  top_left
+  bottom_right
+  center
+}
+
+enum Device {
+  mobile
+  desktop
+}
+
+enum Browser {
+  Chrome
+  Firefox
+  Safari
+}

@@ -132,23 +132,26 @@ services:
     restart: unless-stopped
     command: postgres -c max_connections=100 -c shared_buffers=256MB 
 
-#   reporter:
-#     build:
-#       context: ./services/reporter
-#       dockerfile: Dockerfile
-#     ports:
-#       - "3001:3000"
-#     environment:
-#       - NODE_ENV=development
-#       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/events
-#     depends_on:
-#       postgres:
-#         condition: service_healthy
-#     healthcheck:
-#       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-#       interval: 30s
-#       timeout: 10s
-#       retries: 3
+  reporter:
+    build:
+      context: ./services/reporter
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL_FB=postgresql://postgres:postgres@postgres-fb:5432/events?schema=public
+      - DATABASE_URL_TTK=postgresql://postgres:postgres@postgres-ttk:5432/events?schema=public
+    depends_on:
+      postgres-fb:
+        condition: service_healthy
+      postgres-ttk:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 #   prometheus:
 #     image: prom/prometheus:latest
