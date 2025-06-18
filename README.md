@@ -112,7 +112,26 @@ The platform includes monitoring capabilities:
 - Grafana for visualization
 - Health checks for all services
 
-## License
+## `reporter` requests example
+
+### GET `reports/events`
+```bash
+curl http://localhost:3001/health
+curl "http://localhost:3001/reports/events?source=facebook"
+curl "http://localhost:3001/reports/events?source=tiktok&funnelStage=bottom&from=2025-06-01T00:00:00Z"
+```
+
+### GET `reports/revenue`
+```bash
+curl "http://localhost:3001/reports/revenue?source=facebook"
+curl "http://localhost:3001/reports/revenue?source=tiktok&from=2025-06-18T00:00:00Z"
+```
+
+### GET `reports/demographics`
+```bash
+curl "http://localhost:3001/reports/demographics?source=facebook"
+curl "http://localhost:3001/reports/demographics?source=tiktok&from=2025-06-18T00:00:00Z"
+```
 
 ## dev notes
 1. after creating prisma/schema.prisma, run this command
