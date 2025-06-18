@@ -14,6 +14,8 @@ RUN npx prisma generate --schema=prisma-ttk/schema.prisma
 
 RUN npm run build
 
+RUN npm run test
+
 # Stage 2 - runtime
 FROM node:20-alpine
 
