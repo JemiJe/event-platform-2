@@ -1,6 +1,10 @@
 import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { GetEventsQueryDto, GetEventsQuerySchema } from './dto/get-events.dto';
+import {
+  // GetRevenueQueryDto,
+  GetRevenueQuerySchema,
+} from './dto/get-revenue.dto';
 
 @Controller('reports')
 export class ReportsController {
@@ -15,5 +19,15 @@ export class ReportsController {
 
     const filters: GetEventsQueryDto = parsed.data;
     return this.reportsService.getEventStats(filters);
+  }
+
+  @Get('revenue')
+  async getRevenue(@Query() query: Record<string, any>) {
+    const parsed = GetRevenueQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.flatten());
+    }
+
+    return this.reportsService.getRevenue(parsed.data);
   }
 }
