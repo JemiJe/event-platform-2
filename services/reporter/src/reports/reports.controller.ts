@@ -5,6 +5,10 @@ import {
   // GetRevenueQueryDto,
   GetRevenueQuerySchema,
 } from './dto/get-revenue.dto';
+import {
+  // GetDemographicsQueryDto,
+  GetDemographicsQuerySchema,
+} from './dto/get-demographics.dto';
 
 @Controller('reports')
 export class ReportsController {
@@ -29,5 +33,15 @@ export class ReportsController {
     }
 
     return this.reportsService.getRevenue(parsed.data);
+  }
+
+  @Get('demographics')
+  async getDemographics(@Query() query: Record<string, any>) {
+    const parsed = GetDemographicsQuerySchema.safeParse(query);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.flatten());
+    }
+
+    return this.reportsService.getDemographics(parsed.data);
   }
 }

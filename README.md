@@ -127,6 +127,12 @@ curl "http://localhost:3001/reports/revenue?source=facebook"
 curl "http://localhost:3001/reports/revenue?source=tiktok&from=2025-06-18T00:00:00Z"
 ```
 
+### GET `reports/demographics`
+```bash
+curl "http://localhost:3001/reports/demographics?source=facebook"
+curl "http://localhost:3001/reports/demographics?source=tiktok&from=2025-06-18T00:00:00Z"
+```
+
 ## dev notes
 1. after creating prisma/schema.prisma, run this command
 ```

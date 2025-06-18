@@ -5,6 +5,7 @@ import { GetEventsQueryDto } from './dto/get-events.dto';
 import { GetRevenueQueryDto } from './dto/get-revenue.dto';
 import { Prisma as FBPrisma } from '../../generated/fb-client';
 import type { Prisma as TTKPrisma } from '../../generated/ttk-client';
+import { GetDemographicsQueryDto } from './dto/get-demographics.dto';
 
 @Injectable()
 export class ReportsService {
@@ -95,6 +96,75 @@ export class ReportsService {
       }, 0);
 
       return { source: 'tiktok', totalRevenue };
+    }
+
+    throw new Error('Invalid source');
+  }
+
+  async getDemographics(filters: GetDemographicsQueryDto) {
+    const { from, to, source } = filters;
+
+    const timeFilter =
+      from || to
+        ? {
+            timestamp: {
+              ...(from && { gte: new Date(from) }),
+              ...(to && { lte: new Date(to) }),
+            },
+          }
+        : {};
+
+    if (source === 'facebook') {
+      const [byGender, byAge, byCountry, byCity] = await Promise.all([
+        this.fbPrisma.facebookEvent.groupBy({
+          by: ['userGender'],
+          _count: true,
+          where: timeFilter,
+        }),
+        this.fbPrisma.facebookEvent.groupBy({
+          by: ['userAge'],
+          _count: true,
+          where: timeFilter,
+        }),
+        this.fbPrisma.facebookEvent.groupBy({
+          by: ['userCountry'],
+          _count: true,
+          where: timeFilter,
+        }),
+        this.fbPrisma.facebookEvent.groupBy({
+          by: ['userCity'],
+          _count: true,
+          where: timeFilter,
+        }),
+      ]);
+
+      return {
+        genderDistribution: byGender,
+        ageDistribution: byAge,
+        countryDistribution: byCountry,
+        cityDistribution: byCity,
+      };
+    }
+
+    if (source === 'tiktok') {
+      const [followersStats, countryDist] = await Promise.all([
+        this.ttkPrisma.tiktokEvent.aggregate({
+          _avg: { followers: true },
+          _min: { followers: true },
+          _max: { followers: true },
+          where: timeFilter,
+        }),
+        this.ttkPrisma.tiktokEvent.groupBy({
+          by: ['country'],
+          _count: true,
+          where: timeFilter,
+        }),
+      ]);
+
+      return {
+        followersStats,
+        countryDistribution: countryDist,
+      };
     }
 
     throw new Error('Invalid source');
