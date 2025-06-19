@@ -18,25 +18,29 @@ export class WebhookController {
     this.logger.log(`📥 Received ${events.length} events`);
 
     const results = await Promise.allSettled(
-      events.map((event) => {
-        this.natsService.publishEvent(event);
-        this.metrics.processedEvents.inc();
+      events.map(async (event) => {
+        try {
+          await this.natsService.publishEvent(event);
+          this.metrics.processedEvents.inc();
+          this.metrics.acceptedEvents.inc();
+          return true;
+        } catch (error) {
+          this.metrics.failedEvents.inc();
+          return false;
+        }
       }),
     );
 
-    const failed = results.filter(r => {
-      this.metrics.failedEvents.inc();
-      return r.status === 'rejected';
-    });
+    const failed = results.filter(r => r.status === 'fulfilled' && r.value === false);
 
-    if (failed.length > 0) {
-      this.logger.warn(`⚠️ ${failed.length} events failed to publish`);
-      return {
-        status: 'partial_success',
-        processed: events.length - failed.length,
-        failed: failed.length,
-      };
-    }
+  if (failed.length > 0) {
+    this.logger.warn(`⚠️ ${failed.length} events failed to publish`);
+    return {
+      status: 'partial_success',
+      processed: events.length - failed.length,
+      failed: failed.length,
+    };
+  }
 
     return {
       status: 'success',

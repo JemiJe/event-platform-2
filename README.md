@@ -95,15 +95,6 @@ This will start:
 - TikTok Collector
 - Separate PostgreSQL instances for each collector
 
-### Testing Event Generation
-
-The publisher service can be configured with different event rates:
-
-```bash
-# Set minimum and maximum events per second
-MIN_EVENTS_PER_SECOND=10 MAX_EVENTS_PER_SECOND=100 docker-compose up publisher
-```
-
 ## Monitoring
 
 The platform includes monitoring capabilities:
@@ -134,7 +125,16 @@ curl "http://localhost:3001/reports/demographics?source=tiktok&from=2025-06-18T0
 ```
 
 ## Grafana
-grafana is available on http://localhost:3002
+- grafana is available on http://localhost:3002
+- open dashboards -> select dashboard
+- wait until the data is collected and the "no data" is replaced with actual data values (wait a bit and click to refresh)
+
+
+### 🔐 Default login for Grafana:
+- Username: admin
+- Password: admin
+
+
 
 ## dev notes
 1. after creating prisma/schema.prisma, run this command
@@ -155,3 +155,11 @@ npx prisma migrate dev --name init
 ```
 
 4. sometimes `reporter` doesn't start correctly - so just stop all containers and rerun `docker-compose`
+
+5. add source to grafana
+- Go to Settings → Data Sources
+- Add Prometheus:
+- Name: Prometheus
+- Type: Prometheus
+- URL: http://prometheus:9090
+- Click Save & Test

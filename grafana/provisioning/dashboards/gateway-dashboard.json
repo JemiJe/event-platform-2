@@ -1,0 +1,143 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "gateway_processed_events_total",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "interval": "",
+          "legendFormat": "processed",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "gateway_accepted_events_total",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "accepted",
+          "range": true,
+          "refId": "B",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "gateway_failed_events_total",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "failed",
+          "range": true,
+          "refId": "C",
+          "useBackend": false
+        }
+      ],
+      "title": "gateway event stats",
+      "type": "stat"
+    }
+  ],
+  "preload": false,
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "gateway event stats",
+  "uid": "ce5b5778-7bdc-4419-bca4-e7052fd2768f",
+  "version": 1
+}
