@@ -1,12 +1,13 @@
 import { Controller, Post, Body, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { NatsService } from './nats.service';
 import { Event } from './types/events';
+import { MetricsService } from './metrics.service';
 
 @Controller()
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
 
-  constructor(private readonly natsService: NatsService) {}
+  constructor(private readonly natsService: NatsService, private readonly metrics: MetricsService,) {}
 
   @Post('webhook')
   async handleWebhook(@Body() events: Event[]) {
@@ -17,10 +18,16 @@ export class WebhookController {
     this.logger.log(`📥 Received ${events.length} events`);
 
     const results = await Promise.allSettled(
-      events.map((event) => this.natsService.publishEvent(event)),
+      events.map((event) => {
+        this.natsService.publishEvent(event);
+        this.metrics.processedEvents.inc();
+      }),
     );
 
-    const failed = results.filter(r => r.status === 'rejected');
+    const failed = results.filter(r => {
+      this.metrics.failedEvents.inc();
+      return r.status === 'rejected';
+    });
 
     if (failed.length > 0) {
       this.logger.warn(`⚠️ ${failed.length} events failed to publish`);

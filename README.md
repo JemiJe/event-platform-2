@@ -133,6 +133,9 @@ curl "http://localhost:3001/reports/demographics?source=facebook"
 curl "http://localhost:3001/reports/demographics?source=tiktok&from=2025-06-18T00:00:00Z"
 ```
 
+## Grafana
+grafana is available on http://localhost:3002
+
 ## dev notes
 1. after creating prisma/schema.prisma, run this command
 ```
@@ -146,3 +149,9 @@ npx prisma generate
 DATABASE_URL="postgresql://postgres:postgres@localhost:5433/events?schema=public" \
 npx prisma migrate dev --name init
 ```
+3. 
+```
+--ignore "package-lock.json,services/publisher-testing/**,services/reporter/generated/**"
+```
+
+4. sometimes `reporter` doesn't start correctly - so just stop all containers and rerun `docker-compose`
