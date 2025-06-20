@@ -43,7 +43,7 @@ async function bootstrap() {
     throw error;
   }
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 3010;
   await app.listen(port);
   logger.log(`Facebook collector service is running on port ${port}`);
 }

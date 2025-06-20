@@ -12,13 +12,17 @@ import {
 } from '@prisma/client';
 import { z } from 'zod';
 import { FacebookEvent, FacebookEngagementTop, FacebookEngagementBottom } from '../types/events';
+import { MetricsService } from 'src/metrics/metrics.service';
 
 @Injectable()
 export class EventProcessorService {
   private readonly logger = new Logger(EventProcessorService.name);
   private eventBuffer: FacebookEvent[] = [];
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly metrics: MetricsService,
+  ) {}
 
   private mapGender(gender: string): Gender {
     switch (gender) {
@@ -124,15 +128,19 @@ export class EventProcessorService {
       // Process events immediately
       await this.processBatch(this.eventBuffer);
       this.eventBuffer = [];
+      this.metrics.acceptedEvents.inc();
     } catch (error) {
       if (error instanceof z.ZodError) {
+        this.metrics.failedEvents.inc();
         this.logger.error('Invalid event format:', {
           errors: error.errors,
           receivedEvent: event,
         });
       } else {
+        this.metrics.failedEvents.inc();
         this.logger.error(`Failed to process event: ${error.message}`);
       }
+      this.metrics.failedEvents.inc();
       throw error;
     }
   }
