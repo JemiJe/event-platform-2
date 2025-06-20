@@ -163,3 +163,5 @@ npx prisma migrate dev --name init
 - Type: Prometheus
 - URL: http://prometheus:9090
 - Click Save & Test
+
+6. check prometheus http://localhost:9090/targets

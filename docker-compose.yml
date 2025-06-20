@@ -71,9 +71,12 @@ services:
     build:
       context: ./services/fb-collector
       dockerfile: Dockerfile
+    ports:
+      - "3010:3010"
     environment:
       - NATS_URL=nats://nats:4222
       - DATABASE_URL=postgresql://postgres:postgres@postgres-fb:5432/events?schema=public
+      - PORT=3010
     depends_on:
       nats:
         condition: service_healthy
